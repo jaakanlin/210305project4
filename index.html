@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Todo List</h1>
+    </header>
+
+    <form>
+        <input type="text">
+        <input type="number" min="2021" max="2050" placeholder="年" required>
+        <input type="number" min="1" max="12" placeholder="月" required>
+        <input type="number" min="1" max="31" placeholder="日" required>
+        <button type="submit">Add into List</button>
+    </form>
+
+    <div class="sort">
+        <button>依預定時間排序</button>
+    </div>
+
+    <section></section>
+
+    <script>
+        let section = document.querySelector("section");
+        let add = document.querySelector("form button");
+        add.addEventListener("click", e =>{
+            e.preventDefault();
+            let form = e.target.parentElement;
+            let todoText = form.children[0].value;
+            let todoYear = form.children[1].value;
+            let todoMonth = form.children[2].value;
+            let todoDay = form.children[3].value;
+
+            if (todoText === "" || todoYear === "" || todoMonth === "" || todoDay === ""){
+                alert("有欄位空白，請確認每個欄位都有輸入!");
+                return; //有return程式才會終止
+            }
+            // console.log(todoText,todoYear,todoMonth,todoDate);
+            let todo = document.createElement("div");
+            let text = document.createElement("p");
+            let time = document.createElement("p");
+            let checkBtn = document.createElement("button");
+            let delBtn = document.createElement("button");
+            todo.classList.add("todo");
+            text.classList.add("todo-text");
+            time.classList.add("todo-time");
+            checkBtn.classList.add("check");
+            delBtn.classList.add("del");
+            text.innerText = todoText;
+            time.innerText = todoYear + "/" + todoMonth + "/" + todoDay;
+            checkBtn.innerHTML = '<i class="fas fa-check-circle"></i>';
+            delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            todo.appendChild(text);
+            todo.appendChild(time);
+            todo.appendChild(checkBtn);
+            todo.appendChild(delBtn);
+
+            todo.style.animation = "scaleUp 0.25s forwards";
+
+            form.children[0].value = "";
+            form.children[1].value = "";
+            form.children[2].value = "";
+            form.children[3].value = "";
+
+            //點按鈕後的動作
+            checkBtn.addEventListener("click", e => {
+                let todoItem = e.target.parentElement;
+                todoItem.classList.toggle("done");
+            });
+
+            delBtn.addEventListener("click", e => {
+                let todoItem = e.target.parentElement;
+                todoItem.addEventListener("animationend", () => {
+
+                    //刪除localStorage中資料
+                    let text = todoItem.children[0].innerText;
+                    let myListArray = JSON.parse(localStorage.getItem("list"));
+                    myListArray.forEach((item, index) => {
+                        if(item.todoText == text){
+                            myListArray.splice(index, 1);
+                            localStorage.setItem("list", JSON.stringify(myListArray));
+                        }
+                    });
+
+                    todoItem.remove();
+                });
+                todoItem.style.animation = "scaleDown 0.3s forwards ease-in";
+            });
+
+            //把資料放進localStorage中
+            let myTodo = {
+                todoText: todoText,
+                todoYear: todoYear,
+                todoMonth: todoMonth,
+                todoDay: todoDay
+            };
+
+            let myList = localStorage.getItem("list");
+            
+            if(myList == null){
+                localStorage.setItem("list", JSON.stringify([myTodo]));//把myTodo物件轉成字串 並轉為JSON格式存進去
+            } else {
+                let myListArray = JSON.parse(myList);//把list取出並轉為陣列
+                myListArray.push(myTodo);//取出的陣列加上新的myTodo物件資料
+                localStorage.setItem("list", JSON.stringify(myListArray));//把加上myTodo物件資料的myListArray陣列轉成字串 並轉為JSON格式存進去
+            }
+            console.log(JSON.parse(myList))
+
+            section.appendChild(todo);
+
+        });
+
+        //取出localStorage資料
+        function loadData(){
+            let myList = localStorage.getItem("list");
+
+            if (myList !== null){
+                let myListArray = JSON.parse(myList);
+                myListArray.forEach( item => {
+
+                    let todo = document.createElement("div");
+                    let text = document.createElement("p");
+                    let time = document.createElement("p");
+                    let checkBtn = document.createElement("button");
+                    let delBtn = document.createElement("button");
+                    todo.classList.add("todo");
+                    text.classList.add("todo-text");
+                    time.classList.add("todo-time");
+                    checkBtn.classList.add("check");
+                    delBtn.classList.add("del");
+                    text.innerText = item.todoText;
+                    time.innerText = item.todoYear + "/" + item.todoMonth + "/" + item.todoDay;
+                    checkBtn.innerHTML = '<i class="fas fa-check-circle"></i>';
+                    delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                    todo.appendChild(text);
+                    todo.appendChild(time);
+                    todo.appendChild(checkBtn);
+                    todo.appendChild(delBtn);
+
+                    todo.style.animation = "scaleUp 0.25s forwards";
+
+                    //點按鈕後的動作
+                    checkBtn.addEventListener("click", e => {
+                        let todoItem = e.target.parentElement;
+                        todoItem.classList.toggle("done");
+                    })
+
+                    delBtn.addEventListener("click", e => {
+                        let todoItem = e.target.parentElement;
+                        todoItem.addEventListener("animationend", () => {
+
+                            //刪除localStorage中資料
+                            let text = todoItem.children[0].innerText;
+                            let myListArray = JSON.parse(localStorage.getItem("list"));
+                            myListArray.forEach((item, index) => {
+                                if(item.todoText == text){
+                                    myListArray.splice(index, 1);
+                                    localStorage.setItem("list", JSON.stringify(myListArray));
+                                }
+                            });
+
+                            todoItem.remove();
+                        })
+                        todoItem.style.animation = "scaleDown 0.3s forwards ease-in";
+                    })
+
+                    section.appendChild(todo);
+
+                });
+            }
+        }
+        //資料排序
+        function mergeTime(arr1, arr2){
+            let result = [];
+            let i = 0;
+            let j = 0;
+            while(i < arr1.length && j < arr2.length){
+                if (Number(arr1[i].todoYear) > Number(arr2[j].todoYear)){
+                    result.push(arr2[j]);
+                    j++;
+                } else if (Number(arr1[i].todoYear) < Number(arr2[j].todoYear)){
+                    result.push(arr1[i]);
+                    i++;
+                } else if (Number(arr1[i].todoYear) == Number(arr2[j].todoYear)){
+                    if (Number(arr1[i].todoMonth) > Number(arr2[j].todoMonth)){
+                        result.push(arr2[j]);
+                        j++;
+                    } else if (Number(arr1[i].todoMonth) < Number(arr2[j].todoMonth)){
+                        result.push(arr1[i]);
+                        i++;
+                    } else if (Number(arr1[i].todoMonth) == Number(arr2[j].todoMonth)){
+                        if (Number(arr1[i].todoDay) > Number(arr2[j].todoDay)){
+                            result.push(arr2[j]);
+                            j++;
+                        } else {
+                            result.push(arr1[i]);
+                            i++;
+                        }
+                    }
+                }
+            }
+            while (i < arr1.length){
+                result.push(arr1[i]);
+                i++;
+            }
+            while (j < arr2.length){
+                result.push(arr2[j]);
+                j++;
+            }
+            return result;
+        }
+
+        function mergeSort(arr) {
+            if(arr.length === 1){
+                return arr;
+            } else {
+                let middle = Math.floor(arr.length / 2);
+                let right = arr.slice(0, middle);
+                let left = arr.slice(middle, arr.length);
+                return mergeTime(mergeSort(right), mergeSort(left));
+            }
+        }
+        // console.log(JSON.parse(localStorage.getItem("list")));
+        console.log(mergeSort(JSON.parse(localStorage.getItem("list"))));
+
+        let sortButton = document.querySelector("div.sort button");
+        sortButton.addEventListener("click", () => {
+            let sortedArray = mergeSort(JSON.parse(localStorage.getItem("list")));
+            localStorage.setItem("list", JSON.stringify(sortedArray));
+
+            let len = section.children.length;
+            for (let i = 0; i < len; i++){
+                section.children[0].remove();
+            }
+            loadData();
+        });
+        loadData();
+
+    </script>
+</body>
+</html>
